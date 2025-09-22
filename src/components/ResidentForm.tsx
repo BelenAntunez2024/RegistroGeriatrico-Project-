@@ -1,58 +1,119 @@
 import React, { useState } from "react";
 import { addResidente } from "../services/residents";
-import { Residente } from "../services/residents";
+import type { Residente } from "../services/residents";
 
-type Props = {
-    onAdd: ( res:Residente ) => void;
+interface ResidentFormProps {
+  onAdd: (res: Residente) => void;
 }
 
-const ResidentFrom: React.FC<Props> = ({onAdd}) => {
-    const [nombre, setNombre] = useState("");
-    const [edad, setEdad] = useState<number>(0);
-    const [contacto, setContacto] = useState("");
+const ResidentForm: React.FC<ResidentFormProps> = ({ onAdd }) => {
+  // Estado para los campos del formulario
+  const [editData, setEditData] = useState({
+    nombre: "",
+    edad: 0,
+    contacto: "",
+  });
 
+  // Estados de feedback
+  const [error, setError] = useState("");
+  const [exito, setExito] = useState("");
 
+  // Handler de cambios en los inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditData({
+      ...editData,
+      [e.target.name]: e.target.type === "number"
+        ? Number(e.target.value)
+        : e.target.value,
+    });
+  };
+
+  // Handler de envío de formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const nuevoResidente: Residente ={
-        nombre,
-        edad,
-        contactoFamiliar: contacto,
-        medicamentos: []
-    };
-    try{
-    const res = await addResidente(nuevoResidente);
-    onAdd(res);
-    setNombre("");
-    setEdad(0);
-    setContacto("");
-    } catch(error){
-        console.error ("Hubo un error al agregar un nuevo residente", error);
-    }
-};
 
- return(
-    <form onSubmit={handleSubmit} style={{marginBottom: "1rem"}}>
-    <h3>Agrega un nuevo Residente</h3>
-    <input type="text" 
-      placeholder="Nombre Completo"
-      value={nombre}    
-      onChange={(e) => setNombre(e.target.value)}
-      required
-    />
-    <input type="number" 
-      placeholder="Edad"
-      value={edad}
-      onChange={(e) => setEdad (Number(e.target.value))}
-      required
-    />
-    <input type="text" 
-      placeholder="Contacto Familiar"
-      value={contacto}
-      onChange={(e) => setContacto(e.target.value)}
-    />
-    </form>
+    // Validaciones
+    if (!editData.nombre.trim() || !editData.edad || !editData.contacto.trim()) {
+      setError("Todos los campos son obligatorios");
+      return;
+    }
+
+    if (editData.edad <= 0) {
+      setError("La edad debe ser mayor a 0");
+      return;
+    }
+
+    // Si pasa validaciones → POST
+    const nuevoResidente: Residente = {
+      id: Date.now().toString(),
+      nombre: editData.nombre,
+      edad: editData.edad,
+      contactoFamiliar: editData.contacto,
+      medicamentos: [],
+    };
+
+    try {
+      const res = await addResidente(nuevoResidente);
+      onAdd(res);
+
+      // Reiniciar estado
+      setEditData({ nombre: "", edad: 0, contacto: "" });
+      setError("");
+      setExito("Residente agregado correctamente");
+      setTimeout(() => setExito(""), 3000);
+    } catch (err) {
+      console.error("Hubo un error al agregar un nuevo residente", err);
+      setError("Ocurrió un error al guardar el residente");
+    }
+  };
+
+  return (
+    <>
+
+      <form className="RegistroPaciente" onSubmit={handleSubmit}>
+        <label htmlFor="nombre">Nombre Completo</label>
+        <input
+          type="text"
+          name="nombre"
+          placeholder="Nombre Completo"
+          value={editData.nombre}
+          onChange={handleChange}
+        />
+
+        <label htmlFor="edad">Edad del Residente</label>
+        <input
+          type="number"
+          name="edad"
+          placeholder="Edad"
+          value={editData.edad}
+          onChange={handleChange}
+        />
+
+        <label htmlFor="contacto">Contacto Familiar</label>
+        <input
+          type="text"
+          name="contacto"
+          placeholder="Contacto Familiar"
+          value={editData.contacto}
+          onChange={handleChange}
+        />
+
+        <button type="submit">Agregar Paciente</button>
+
+        {/* Mensajes de feedback */}
+        {error && (
+          <div className="message-sent" style={{ color: "red", marginTop: "10px" }}>
+            <h3>{error}</h3>
+          </div>
+        )}
+        {exito && (
+          <div className="message-sent" style={{ color: "green", marginTop: "10px" }}>
+            <h3>{exito}</h3>
+          </div>
+        )}
+      </form>
+    </>
   );
 };
 
-export default ResidentFrom;
+export default ResidentForm;
