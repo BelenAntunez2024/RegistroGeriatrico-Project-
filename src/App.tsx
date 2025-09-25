@@ -1,16 +1,14 @@
-//import React from "react";
 import { useEffect, useState } from "react";
 import ResidentList from "./components/ResidenteList";
 import ResidentForm from "./components/ResidentForm";
 import type { Residente } from "./services/residents";
-import { getResidentes } from "./services/residents";
+import { getResidentes, deleteResidente } from "./services/residents"; // <- IMPORTAR delete
 import "./index.css";
 
 function App() {
   const [residentes, setResidentes] = useState<Residente[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Cargar residentes desde MockAPI al iniciar
   useEffect(() => {
     (async () => {
       try {
@@ -24,39 +22,40 @@ function App() {
     })();
   }, []);
 
-  // Agregar un nuevo residente
-  const handleAdd = (nuevo: Residente) => {
-    setResidentes((prev) => [...prev, nuevo]);
+  // DELETE: llamar al servicio y actualizar estado
+  const handleDelete = async (id: string) => {
+    try {
+      console.log("Solicitando eliminación de id:", id);
+      await deleteResidente(id); // si tu servicio devuelve algo distinto, ajustá
+      setResidentes((prev) => prev.filter((r) => String(r.id) !== String(id)));
+    } catch (err) {
+      console.error("Error al eliminar residente:", err);
+      alert("No se pudo eliminar el residente. Revisa la consola o la Red.");
+    }
   };
 
-  // Eliminar un residente
-  const handleDelete = (id: string) => {
-    setResidentes((prev) => prev.filter((r) => r.id !== id));
-  };
+  const handleAdd = (nuevo: Residente) => setResidentes((p) => [...p, nuevo]);
+  const handleUpdate = (updated: Residente) =>
+    setResidentes((p) => p.map((r) => (String(r.id) === String(updated.id) ? updated : r)));
 
   if (loading) return <p>Cargando residentes...</p>;
 
   return (
     <div style={{ maxWidth: 900, margin: "2rem auto", padding: "0 1rem" }}>
       <header>
-        <h1>Geriátrico San Andres </h1> 
-        <h2>Administración de Medicamentos </h2>
+        <h1>Geriátrico San Andres</h1>
+        <h2>Administración de Medicamentos</h2>
       </header>
 
       <main>
-        {/* Formulario arriba */}
         <ResidentForm onAdd={handleAdd} />
-
-        {/* Lista abajo */}
         <ResidentList
-        residentes={residentes}
-        onDelete={handleDelete}
-        onUpdate={(updated) => {
-          setResidentes((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-          }} 
+          residentes={residentes}
+          onDelete={handleDelete}
+          onUpdate={handleUpdate}
         />
-    </main>
-  </div>
+      </main>
+    </div>
   );
 }
 

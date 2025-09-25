@@ -12,6 +12,8 @@ const ResidentForm: React.FC<ResidentFormProps> = ({ onAdd }) => {
     nombre: "",
     edad: 0,
     contacto: "",
+    genero:"",
+    fotoUrl:""
   });
 
   // Estados de feedback
@@ -19,7 +21,7 @@ const ResidentForm: React.FC<ResidentFormProps> = ({ onAdd }) => {
   const [exito, setExito] = useState("");
 
   // Handler de cambios en los inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setEditData({
       ...editData,
       [e.target.name]: e.target.type === "number"
@@ -29,7 +31,7 @@ const ResidentForm: React.FC<ResidentFormProps> = ({ onAdd }) => {
   };
 
   // Handler de envío de formulario
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent  ) => {
     e.preventDefault();
 
     // Validaciones
@@ -50,6 +52,8 @@ const ResidentForm: React.FC<ResidentFormProps> = ({ onAdd }) => {
       edad: editData.edad,
       contactoFamiliar: editData.contacto,
       medicamentos: [],
+      genero: editData.genero as "masculino" | "femenino",
+      fotoUrl: editData.fotoUrl
     };
 
     try {
@@ -57,7 +61,7 @@ const ResidentForm: React.FC<ResidentFormProps> = ({ onAdd }) => {
       onAdd(res);
 
       // Reiniciar estado
-      setEditData({ nombre: "", edad: 0, contacto: "" });
+      setEditData({ nombre: "", edad: 0, contacto: "", genero:"", fotoUrl:""});
       setError("");
       setExito("Residente agregado correctamente");
       setTimeout(() => setExito(""), 3000);
@@ -88,6 +92,15 @@ const ResidentForm: React.FC<ResidentFormProps> = ({ onAdd }) => {
           value={editData.edad}
           onChange={handleChange}
         />
+         <label htmlFor="genero">Género</label>
+         <select
+         name="genero"
+         value={editData.genero}
+         onChange={handleChange}>
+         <option value="">Seleccione género</option>
+         <option value="masculino">Masculino</option>
+         <option value="femenino">Femenino</option>
+         </select>
 
         <label htmlFor="contacto">Contacto Familiar</label>
         <input

@@ -13,6 +13,8 @@ export type Residente = {
   edad: number;
   contactoFamiliar: string;
   medicamentos: Medicamento[];
+  genero: "masculino" | "femenino";
+  fotoUrl?: string;
 };
 
 // Solo usamos el endpoint de Residentes
